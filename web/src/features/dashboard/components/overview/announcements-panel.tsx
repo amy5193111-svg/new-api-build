@@ -20,6 +20,7 @@ import { Megaphone } from 'lucide-react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAnnouncements } from '@/features/dashboard/hooks/use-status-data'
@@ -72,28 +73,48 @@ export function AnnouncementsPanel() {
     [list, isAnnouncementRead]
   )
   const autoOpenedRef = useRef(false)
+  const [unreadQueue, setUnreadQueue] = useState<AnnouncementItem[]>([])
+  const [queueIndex, setQueueIndex] = useState(0)
+
+  const markRead = (item: AnnouncementItem | null) => {
+    if (!item) return
+    markAnnouncementsRead([
+      getAnnouncementKey(item as unknown as Record<string, unknown>),
+    ])
+  }
 
   useEffect(() => {
     if (autoOpenedRef.current || loading || unreadList.length === 0) return
     autoOpenedRef.current = true
+    setUnreadQueue(unreadList)
+    setQueueIndex(0)
     setSelectedAnnouncement(unreadList[0])
     setIsDialogOpen(true)
   }, [loading, unreadList])
 
   const handleAnnouncementClick = (item: AnnouncementItem) => {
+    setUnreadQueue([])
+    setQueueIndex(0)
     setSelectedAnnouncement(item)
     setIsDialogOpen(true)
   }
 
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open)
-    if (open || !selectedAnnouncement) return
-    markAnnouncementsRead([
-      getAnnouncementKey(
-        selectedAnnouncement as unknown as Record<string, unknown>
-      ),
-    ])
+    if (open) return
+    markRead(selectedAnnouncement)
+    setUnreadQueue([])
   }
+
+  const handleNextUnread = () => {
+    const nextIndex = queueIndex + 1
+    if (nextIndex >= unreadQueue.length) return
+    markRead(unreadQueue[queueIndex])
+    setQueueIndex(nextIndex)
+    setSelectedAnnouncement(unreadQueue[nextIndex])
+  }
+
+  const remainingUnread = Math.max(0, unreadQueue.length - queueIndex - 1)
 
   return (
     <PanelWrapper
@@ -154,6 +175,22 @@ export function AnnouncementsPanel() {
         open={isDialogOpen}
         onOpenChange={handleDialogOpenChange}
         announcement={selectedAnnouncement}
+        footer={
+          remainingUnread > 0 ? (
+            <div className='flex w-full items-center justify-between gap-2'>
+              <span className='text-muted-foreground text-xs'>
+                {t('Announcement Unread Remaining', { count: remainingUnread })}
+              </span>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={handleNextUnread}
+              >
+                {t('Announcement Next Unread')}
+              </Button>
+            </div>
+          ) : undefined
+        }
       />
     </PanelWrapper>
   )

@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
@@ -33,12 +34,14 @@ interface AnnouncementDetailModalProps {
     publishDate?: string
     extra?: string
   } | null
+  footer?: ReactNode
 }
 
 export function AnnouncementDetailModal({
   open,
   onOpenChange,
   announcement,
+  footer,
 }: AnnouncementDetailModalProps) {
   const { t } = useTranslation()
   return (
@@ -54,6 +57,7 @@ export function AnnouncementDetailModal({
       contentClassName='sm:max-w-lg'
       contentHeight='auto'
       bodyClassName='space-y-4'
+      footer={footer}
     >
       <ScrollArea className='max-h-[min(58vh,520px)] pr-4'>
         <div className='space-y-4'>

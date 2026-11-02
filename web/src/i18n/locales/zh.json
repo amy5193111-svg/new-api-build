@@ -544,6 +544,8 @@
     "Announcement content": "公告内容",
     "Announcement deleted. Click \"Save Settings\" to apply.": "公告已删除。点击 \"保存设置\" 以应用。",
     "Announcement Details": "公告详情",
+    "Announcement Next Unread": "下一条未读",
+    "Announcement Unread Remaining": "还剩 {{count}} 条未读",
     "Announcement displayed to users (supports Markdown & HTML)": "向用户显示的公告（支持 Markdown 和 HTML）",
     "Announcement updated. Click \"Save Settings\" to apply.": "公告已更新。点击 \"保存设置\" 以应用。",
     "Announcements": "公告",

@@ -544,6 +544,8 @@
     "Announcement content": "Announcement content",
     "Announcement deleted. Click \"Save Settings\" to apply.": "Announcement deleted. Click \"Save Settings\" to apply.",
     "Announcement Details": "Announcement Details",
+    "Announcement Next Unread": "Next unread",
+    "Announcement Unread Remaining": "{{count}} unread remaining",
     "Announcement displayed to users (supports Markdown & HTML)": "Announcement displayed to users (supports Markdown & HTML)",
     "Announcement updated. Click \"Save Settings\" to apply.": "Announcement updated. Click \"Save Settings\" to apply.",
     "Announcements": "Announcements",
