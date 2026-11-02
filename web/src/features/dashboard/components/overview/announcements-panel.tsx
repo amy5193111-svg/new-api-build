@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Megaphone } from 'lucide-react'
-import { memo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { IconBadge } from '@/components/ui/icon-badge'
@@ -25,9 +25,11 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAnnouncements } from '@/features/dashboard/hooks/use-status-data'
 import { getPreviewText } from '@/features/dashboard/lib'
 import type { AnnouncementItem } from '@/features/dashboard/types'
+import { getAnnouncementKey } from '@/hooks/use-notifications'
 import { getAnnouncementColorClass } from '@/lib/colors'
 import { formatDateTimeObject } from '@/lib/time'
 import { cn } from '@/lib/utils'
+import { useNotificationStore } from '@/stores/notification-store'
 
 import { PanelWrapper } from '../ui/panel-wrapper'
 import { AnnouncementDetailModal } from './announcement-detail-dialog'
@@ -51,10 +53,46 @@ export function AnnouncementsPanel() {
   const [selectedAnnouncement, setSelectedAnnouncement] =
     useState<AnnouncementItem | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const markAnnouncementsRead = useNotificationStore(
+    (state) => state.markAnnouncementsRead
+  )
+  const isAnnouncementRead = useNotificationStore(
+    (state) => state.isAnnouncementRead
+  )
+
+  // 未读公告自动弹窗：进入概览时把最新一条未读公告推到用户面前，关闭即视为已读
+  const unreadList = useMemo(
+    () =>
+      list.filter(
+        (item) =>
+          !isAnnouncementRead(
+            getAnnouncementKey(item as unknown as Record<string, unknown>)
+          )
+      ),
+    [list, isAnnouncementRead]
+  )
+  const autoOpenedRef = useRef(false)
+
+  useEffect(() => {
+    if (autoOpenedRef.current || loading || unreadList.length === 0) return
+    autoOpenedRef.current = true
+    setSelectedAnnouncement(unreadList[0])
+    setIsDialogOpen(true)
+  }, [loading, unreadList])
 
   const handleAnnouncementClick = (item: AnnouncementItem) => {
     setSelectedAnnouncement(item)
     setIsDialogOpen(true)
+  }
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open)
+    if (open || !selectedAnnouncement) return
+    markAnnouncementsRead([
+      getAnnouncementKey(
+        selectedAnnouncement as unknown as Record<string, unknown>
+      ),
+    ])
   }
 
   return (
@@ -114,7 +152,7 @@ export function AnnouncementsPanel() {
 
       <AnnouncementDetailModal
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         announcement={selectedAnnouncement}
       />
     </PanelWrapper>
