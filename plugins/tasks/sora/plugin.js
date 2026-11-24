@@ -89,6 +89,14 @@ function responsesVideoText(ctx) {
 function requestValues(req, model) {
   const values = Object.assign({}, req || {});
   values.model = model;
+  // 上游（labulabu）按分辨率计价的任务模型只认顶层 resolution，带 size 会直接
+  // 400 unsupported video pricing spec；而它对同一模型的任何档位都放行，所以按
+  // 模型名锁定档位并丢掉 size，防止用低档价格点出高档画质。
+  const fixed = MODEL_RESOLUTION[model];
+  if (fixed) {
+    values.resolution = fixed;
+    delete values.size;
+  }
   return values;
 }
 
