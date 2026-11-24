@@ -284,17 +284,16 @@ protocols.openai_video = {
     if (ctx.body.kind === "json") {
       if (!ctx.body.value || Array.isArray(ctx.body.value)) throw new Error("JSON object required");
       const req = ctx.body.value;
-      if (String(ctx.model || "").indexOf("bl-720p") >= 0 || String(ctx.model || "").indexOf("wd-480p") >= 0) {
-        throw new Error("MARK_VIDEODECODE model=" + ctx.model + " hasSize=" + (req.size !== undefined) + " res=" + String(req.resolution));
-      }
+      // 解码阶段 ctx.model 可能还没绑定，模型名以请求体为准。
+      const modelName = String(ctx.model || req.model || "").trim();
       const seconds = req.seconds === undefined ? req.duration : req.seconds;
       if (seconds !== undefined && (!Number.isFinite(Number(seconds)) || Number(seconds) <= 0 || Number(seconds) > 3600))
         throw new Error("seconds must be between 1 and 3600");
       return {
         kind: "submit",
-        model: ctx.model,
+        model: modelName,
         action: req.input_reference || req.image ? "image_to_video" : "text_to_video",
-        requestBody: applyModelResolution(ctx.model, Object.assign({}, req, { model: ctx.model })),
+        requestBody: applyModelResolution(modelName, Object.assign({}, req, { model: modelName })),
       };
     }
     const first = function (name) {
@@ -328,11 +327,12 @@ protocols.openai_video = {
     const seconds = req.seconds === undefined ? req.duration : req.seconds;
     if (seconds !== undefined && (!Number.isFinite(Number(seconds)) || Number(seconds) <= 0 || Number(seconds) > 3600))
       throw new Error("seconds must be between 1 and 3600");
+    const modelName = String(ctx.model || req.model || "").trim();
     return {
       kind: "submit",
-      model: ctx.model,
+      model: modelName,
       action: hasInputReferenceFile || req.input_reference || req.image ? "image_to_video" : "text_to_video",
-      requestBody: applyModelResolution(ctx.model, Object.assign({}, req, { model: ctx.model })),
+      requestBody: applyModelResolution(modelName, Object.assign({}, req, { model: modelName })),
     };
   },
   render: function (ctx, task) {
