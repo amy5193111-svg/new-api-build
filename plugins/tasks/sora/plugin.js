@@ -33,6 +33,20 @@ export const meta = {
       description: { en: "Output video dimensions", zh: "输出视频尺寸" },
     },
   },
+  // 按分辨率档位计价的任务模型：档位由模型名固定，请求里的 size 无意义，
+  // 因此不声明 size，避免合法画质值被默认枚举拦掉。
+  usageProfiles: [
+    {
+      models: ["seedance2.5-bl-720p", "seedance2.5-wd-480p"],
+      schema: {
+        seconds: {
+          type: "number",
+          unit: "second",
+          description: { en: "Video generation unit price", zh: "视频生成单价" },
+        },
+      },
+    },
+  ],
   protocols: [{ name: "openai_responses", supports: ["stream", "sync", "background"] }, "openai_video"],
 };
 
