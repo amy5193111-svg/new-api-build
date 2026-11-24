@@ -973,6 +973,19 @@ export function extractUsageOnComplete(task, taskResult, body) {
   return facts;
 }
 
+// 上游按分辨率档位计价的任务模型只认 metadata.resolution：带 size 会直接 400
+// unsupported video pricing spec，而对同一模型上游对任何档位都放行。所以按模型名
+// 锁定档位、并丢掉上游不认的 size，防止用低档价格点出高档画质。
+const VIDEO_RESOLUTION_SUFFIXES = ["-480p", "-720p", "-1080p", "-2k", "-4k"];
+
+function videoResolutionFromModelName(model) {
+  const name = String(model || "").toLowerCase();
+  for (const suffix of VIDEO_RESOLUTION_SUFFIXES) {
+    if (name.endsWith(suffix)) return suffix.slice(1);
+  }
+  return "";
+}
+
 export const protocols = {
   openai_responses: {
     decodeRequest: function (ctx) {
@@ -1018,13 +1031,15 @@ export const protocols = {
       }
       if (!prompt && images.length === 0) throw new Error("input is required");
       const metadata = Object.assign({}, req.metadata || {});
-      if (Object.prototype.hasOwnProperty.call(req, "resolution")) metadata.resolution = req.resolution;
+      const lockedResolution = videoResolutionFromModelName(model);
+      if (lockedResolution) metadata.resolution = lockedResolution;
+      else if (Object.prototype.hasOwnProperty.call(req, "resolution")) metadata.resolution = req.resolution;
       else if (req.size && !metadata.resolution) metadata.resolution = normalizeResolution(req.size);
       const requestBody = { model: model, prompt: prompt, metadata: metadata };
       if (images.length) requestBody.images = images;
       if (Object.prototype.hasOwnProperty.call(req, "seconds")) requestBody.seconds = req.seconds;
       else if (Object.prototype.hasOwnProperty.call(req, "duration")) requestBody.seconds = req.duration;
-      if (Object.prototype.hasOwnProperty.call(req, "size")) requestBody.size = req.size;
+      if (!lockedResolution && Object.prototype.hasOwnProperty.call(req, "size")) requestBody.size = req.size;
       const intent = { kind: "submit", model: model, action: images.length ? "image_to_video" : "text_to_video", requestBody: requestBody };
       const originTaskIds = draftTaskIds(metadata.content);
       if (originTaskIds.length) intent.originTaskIds = originTaskIds;
