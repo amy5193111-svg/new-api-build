@@ -137,6 +137,9 @@ export function extractUsage(ctx) {
   const req = ctx.requestBody || {};
   let seconds = Number(req.seconds || req.duration || 4);
   if (!Number.isFinite(seconds) || seconds <= 0) seconds = 4;
+  // 按模型名锁定档位的模型按秒计价，size 不参与计费；且上游档位取值不在
+  // usageSchema 的 size 枚举内，返回它会触发 plugin_usage_invalid。
+  if (MODEL_RESOLUTION[String(ctx.model || req.model || "").trim()]) return { seconds: Math.min(seconds, 3600) };
   return { seconds: Math.min(seconds, 3600), size: req.size || "720x1280" };
 }
 
