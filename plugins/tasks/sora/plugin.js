@@ -199,7 +199,13 @@ export const protocols = {
       if (images.length) requestBody.input_reference = images[0];
       if (Object.prototype.hasOwnProperty.call(req, "seconds")) requestBody.seconds = req.seconds;
       else if (Object.prototype.hasOwnProperty.call(req, "duration")) requestBody.seconds = req.duration;
-      if (Object.prototype.hasOwnProperty.call(req, "size")) requestBody.size = req.size;
+      // 按分辨率计价的上游模型：只认顶层 resolution，且任何档位都放行，
+      // 所以按模型名锁定档位、丢掉上游不认的 size，避免低价点高档。
+      if (MODEL_RESOLUTION[model]) {
+        requestBody.resolution = MODEL_RESOLUTION[model];
+      } else if (Object.prototype.hasOwnProperty.call(req, "size")) {
+        requestBody.size = req.size;
+      }
       if (Object.prototype.hasOwnProperty.call(req, "metadata")) requestBody.metadata = req.metadata;
       return { kind: "submit", model: model, action: images.length ? "image_to_video" : "text_to_video", requestBody: requestBody };
     },
