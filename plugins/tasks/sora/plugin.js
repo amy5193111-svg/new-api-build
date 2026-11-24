@@ -23,30 +23,20 @@ export const meta = {
     },
     // Requested output video dimensions.
     size: {
-      enum: ["720x1280", "1280x720", "1792x1024", "1024x1792"],
+      enum: ["720x1280", "1280x720", "854x480", "480x854", "1920x1080", "1080x1920", "1792x1024", "1024x1792"],
       enumLabels: {
         "720x1280": { en: "720x1280", zh: "720x1280" },
         "1280x720": { en: "1280x720", zh: "1280x720" },
+        "854x480": { en: "854x480", zh: "854x480" },
+        "480x854": { en: "480x854", zh: "480x854" },
+        "1920x1080": { en: "1920x1080", zh: "1920x1080" },
+        "1080x1920": { en: "1080x1920", zh: "1080x1920" },
         "1792x1024": { en: "1792x1024", zh: "1792x1024" },
         "1024x1792": { en: "1024x1792", zh: "1024x1792" },
       },
       description: { en: "Output video dimensions", zh: "输出视频尺寸" },
     },
   },
-  // 按分辨率档位计价的任务模型：档位由模型名固定，请求里的 size 无意义，
-  // 因此不声明 size，避免合法画质值被默认枚举拦掉。
-  usageProfiles: [
-    {
-      models: ["seedance2.5-bl-720p", "seedance2.5-wd-480p"],
-      schema: {
-        seconds: {
-          type: "number",
-          unit: "second",
-          description: { en: "Video generation unit price", zh: "视频生成单价" },
-        },
-      },
-    },
-  ],
   protocols: [{ name: "openai_responses", supports: ["stream", "sync", "background"] }, "openai_video"],
 };
 
