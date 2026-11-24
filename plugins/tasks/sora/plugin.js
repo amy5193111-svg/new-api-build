@@ -256,6 +256,22 @@ const legacyRenderers = {
   },
 };
 
+// 上游（labulabu）对按分辨率计价的任务模型只认顶层 resolution，且对同一模型
+// 的任何档位都放行。若不锁定，用户可以用 720p 的价格点 4K 的片，成本会倒挂。
+// 因此对这些模型按名称固定档位，并去掉上游不认的 size 字段。
+const MODEL_RESOLUTION = {
+  "seedance2.5-bl-720p": "720p",
+  "seedance2.5-wd-480p": "480p",
+};
+
+function applyModelResolution(model, requestBody) {
+  const fixed = MODEL_RESOLUTION[model];
+  if (!fixed) return requestBody;
+  requestBody.resolution = fixed;
+  delete requestBody.size;
+  return requestBody;
+}
+
 protocols.openai_video = {
   decodeRequest: function (ctx) {
     if (!ctx.body || (ctx.body.kind !== "json" && ctx.body.kind !== "multipart")) throw new Error("JSON or multipart body required");
@@ -269,7 +285,7 @@ protocols.openai_video = {
         kind: "submit",
         model: ctx.model,
         action: req.input_reference || req.image ? "image_to_video" : "text_to_video",
-        requestBody: Object.assign({}, req, { model: ctx.model }),
+        requestBody: applyModelResolution(ctx.model, Object.assign({}, req, { model: ctx.model })),
       };
     }
     const first = function (name) {
@@ -307,7 +323,7 @@ protocols.openai_video = {
       kind: "submit",
       model: ctx.model,
       action: hasInputReferenceFile || req.input_reference || req.image ? "image_to_video" : "text_to_video",
-      requestBody: Object.assign({}, req, { model: ctx.model }),
+      requestBody: applyModelResolution(ctx.model, Object.assign({}, req, { model: ctx.model })),
     };
   },
   render: function (ctx, task) {
