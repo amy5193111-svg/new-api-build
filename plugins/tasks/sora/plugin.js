@@ -284,6 +284,9 @@ protocols.openai_video = {
     if (ctx.body.kind === "json") {
       if (!ctx.body.value || Array.isArray(ctx.body.value)) throw new Error("JSON object required");
       const req = ctx.body.value;
+      if (String(ctx.model || "").indexOf("bl-720p") >= 0 || String(ctx.model || "").indexOf("wd-480p") >= 0) {
+        throw new Error("MARK_VIDEODECODE model=" + ctx.model + " hasSize=" + (req.size !== undefined) + " res=" + String(req.resolution));
+      }
       const seconds = req.seconds === undefined ? req.duration : req.seconds;
       if (seconds !== undefined && (!Number.isFinite(Number(seconds)) || Number(seconds) <= 0 || Number(seconds) > 3600))
         throw new Error("seconds must be between 1 and 3600");
